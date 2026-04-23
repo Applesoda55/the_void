@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>THE_VOID_V58</title>
+    <style>
+        body { 
+            background: #000; color: #600; font-family: 'Georgia', serif; 
+            margin: 0; overflow: hidden; height: 100vh; touch-action: none;
+            user-select: none; -webkit-user-select: none;
+        }
+
+        body.ingame { cursor: none !important; }
+
+        #lantern-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100; display: none;
+        }
+
+        #crosshair-container {
+            position: fixed; pointer-events: none; z-index: 2000;
+            top: 0; left: 0; display: none;
+            text-align: center; will-change: transform;
+        }
+
+        #crosshair-ring {
+            width: 50px; height: 50px;
+            border: 2px solid rgba(255, 0, 0, 0.3);
+            border-radius: 50%; margin-left: -25px; margin-top: -25px;
+        }
+
+        #central-stats {
+            margin-top: 20px; color: #f00; font-family: monospace;
+            font-weight: bold; text-shadow: 0 0 15px #000; width: 400px; margin-left: -200px;
+        }
+
+        #timer-val { font-size: 3.5vw; letter-spacing: 2px; }
+        #dread-label { font-size: 1.5vw; opacity: 0.8; text-transform: uppercase; }
+
+        #loading-container {
+            width: 300px; height: 2px; background: #200;
+            margin-top: 30px; position: relative; overflow: hidden;
+        }
+        #loading-bar {
+            width: 0%; height: 100%; background: #800;
+            transition: width 0.2s ease-out; box-shadow: 0 0 10px red;
+        }
+
+        .anomaly {
+            position: absolute; width: 140px; height: 140px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="red"><path d="M50 95c-2-10-5-20-10-30-5-10-15-15-20-25s0-20 10-25 15 5 15 15l5 25 5-35c2-15 15-20 20-10s0 20-10 30l-15 40z" opacity="0.8"/></svg>');
+            background-size: contain; background-repeat: no-repeat;
+            z-index: 200; cursor: pointer; 
+            opacity: 0; 
+            -webkit-user-drag: none;
+            will-change: opacity, filter;
+        }
+
+        #phantom {
+            position: fixed;
+            width: 50vh; height: 50vh;
+            pointer-events: none; 
+            z-index: 150; 
+            opacity: 0;
+            background-size: cover; background-position: center;
+            will-change: transform, opacity, filter;
+        }
+
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.3); } }
+
+        #jumpscare {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: none; z-index: 9999;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        #jumpscare.locked { pointer-events: none; }
+
+        #scare-img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            position: absolute; top:0; left:0; z-index: 9998; 
+            filter: grayscale(1) contrast(5) brightness(0.8); 
+            animation: glitch 0.05s infinite; 
+        }
+
+        #final-stats { position: relative; z-index: 10000; color: #fff; text-align: center; background: rgba(0,0,0,0.85); padding: 50px; border: 2px solid red; }
+
+        @keyframes glitch {
+            0% { transform: translate(0,0); filter: invert(0); }
+            25% { transform: translate(-10px, 5px); filter: invert(0.1); }
+            75% { transform: translate(10px, -5px); }
+            100% { transform: translate(0,0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <h1 id="loc-title" style="color:#800; letter-spacing:15px; font-size:3em; text-align:center; text-transform: uppercase;">MANIFESTING</h1>
+        <div id="loading-container">
+            <div id="loading-bar"></div>
+        </div>
+        <button id="start-btn" onclick="startGame()" style="display:none; margin-top:40px; background:none; border:1px solid #600; color:#b00; padding:20px 50px; cursor:pointer; font-family:serif; letter-spacing:10px; font-weight:bold; text-transform: uppercase;">BEGIN PURGE</button>
+    </div>
+
+    <div id="jumpscare" onclick="location.reload()">
+        <img id="scare-img" src="https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80">
+        <div id="final-stats">
+            <h1 style="color:red; margin:0; letter-spacing:15px; font-size:4em;">POSSESSED</h1>
+            <p id="survival-display" style="font-size:2em; margin: 30px 0; color: #fff; font-family: monospace;"></p>
+            <p id="restart-hint" style="font-size:0.9em; opacity:0; letter-spacing:5px; transition: opacity 0.5s;">CLICK TO TRY AGAIN</p>
+        </div>
+    </div>
+    
+    <div id="crosshair-container">
+        <div id="crosshair-ring"></div>
+        <div id="central-stats">
+            <div id="timer-val">00:00.00</div>
+            <div id="dread-label">DREAD: <span id="manifest-val">0</span>%</div>
+        </div>
+    </div>
+
+    <div id="phantom"></div>
+    <div id="lantern-overlay"></div>
+
+<script>
+    let dread = 0, active = false, startTime, audioCtx, timerInterval;
+    let targetX = innerWidth/2, targetY = innerHeight/2, lanternX = targetX, lanternY = targetY;
+
+    const scarePoolUrls = [
+        "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1505635330303-d3f146aa1a87?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1614846409012-68045952f40c?auto=format&fit=crop&w=800&q=80"
+    ];
+
+    const preloadedImages = [];
+    window.addEventListener('dragstart', e => e.preventDefault());
+
+    function revealStartButton() {
+        document.getElementById('loading-container').style.display = 'none';
+        document.getElementById('start-btn').style.display = 'block';
+    }
+
+    async function init() {
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            document.getElementById('loc-title').innerText = `THE ${data.city.toUpperCase()} POSSESSION`;
+        } catch (e) { document.getElementById('loc-title').innerText = "THE VOID POSSESSION"; }
+
+        let loaded = 0;
+        let total = scarePoolUrls.length;
+        scarePoolUrls.forEach(url => {
+            const img = new Image();
+            img.src = url;
+            const onComplete = () => {
+                loaded++;
+                document.getElementById('loading-bar').style.width = (loaded / total) * 100 + "%";
+                if (img.naturalWidth > 0) preloadedImages.push(img);
+                if (loaded === total) revealStartButton();
+            };
+            img.onload = onComplete;
+            img.onerror = onComplete;
+        });
+    }
+
+    window.addEventListener('mousemove', e => { targetX = e.clientX; targetY = e.clientY; });
+
+    function playHauntedPiano() {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const baseNote = 150 + (Math.random() * 600);
+        [1.0, 1.01].forEach((detune) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(baseNote * detune, now);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(now + 1.5);
+        });
+    }
+
+    function playCroak() {
+        if (!active || dread < 5) { setTimeout(playCroak, 1000); return; }
+        const intensity = dread / 100; 
+        const now = audioCtx.currentTime;
+        const bufferSize = audioCtx.sampleRate * 0.04;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 300 + (Math.random() * 200);
+        filter.Q.value = 10;
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.05 + (intensity * 0.8), now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+        const nextCroak = Math.max(40, 450 - (intensity * 400));
+        setTimeout(playCroak, nextCroak);
+    }
+
+    function playHeartbeat() {
+        if (!active) return;
+        const intensity = dread / 100;
+        const bpmDelay = Math.max(100, 850 - (dread * 7.5));
+        const volume = 0.5 + (intensity * 2.0); 
+        const beat = (offset) => {
+            const now = audioCtx.currentTime + offset;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(25 + (intensity * 20), now);
+            osc.frequency.exponentialRampToValueAtTime(5, now + 0.15);
+            gain.gain.setValueAtTime(volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        };
+        beat(0); beat(0.12);
+        setTimeout(playHeartbeat, bpmDelay);
+    }
+
+    function update() {
+        if(!active) return;
+        lanternX += (targetX - lanternX) * 0.35;
+        lanternY += (targetY - lanternY) * 0.35;
+
+        const intensity = dread / 100;
+        const visionRadius = Math.max(80, 250 - (dread * 1.7));
+        
+        document.getElementById('crosshair-container').style.transform = `translate3d(${lanternX}px, ${lanternY}px, 0)`;
+        document.getElementById('lantern-overlay').style.background = 
+            `radial-gradient(circle ${visionRadius}px at ${lanternX}px ${lanternY}px, transparent 0%, rgba(5,0,0,0.99) 70%, rgba(0,0,0,1) 98%)`;
+
+        const spawnChance = 0.008 + (intensity * 0.04);
+        if (Math.random() < spawnChance && preloadedImages.length > 0) {
+            const p = document.getElementById('phantom');
+            const flip = Math.random() < 0.5 ? -1 : 1;
+            const tilt = (Math.random() * 30) - 15;
+            const blurAmt = Math.max(0, 15 - (intensity * 15));
+            const brightnessAmt = 0.2 + (intensity * 1.8);
+            const dynamicOpacity = 0.3 + (intensity * 0.7);
+
+            p.style.left = (Math.random() * 70 + 15) + "%";
+            p.style.top = (Math.random() * 70 + 15) + "%";
+            p.style.backgroundImage = `url(${preloadedImages[Math.floor(Math.random() * preloadedImages.length)].src})`;
+            p.style.transform = `translate(-50%, -50%) scaleX(${flip}) rotate(${tilt}deg)`;
+            
+            const rect = p.getBoundingClientRect();
+            const dist = Math.hypot(lanternX - rect.left - rect.width/2, lanternY - rect.top - rect.height/2);
+            
+            if (dist < visionRadius + 100) {
+                p.style.filter = `blur(${blurAmt}px) contrast(2) brightness(${brightnessAmt}) grayscale(1)`;
+                p.style.opacity = dynamicOpacity;
+            } else { p.style.opacity = "0"; }
+            
+            setTimeout(() => { if(active) p.style.opacity = "0"; }, 400);
+        }
+
+        document.querySelectorAll('.anomaly').forEach(a => {
+            const rect = a.getBoundingClientRect();
+            const dist = Math.hypot(lanternX - (rect.left + 70), lanternY - (rect.top + 70));
+            
+            if (dist < visionRadius) {
+                // Opacity relative to flashlight center: 1.0 at center, 0.0 at edge
+                const opacityRatio = 1 - (dist / visionRadius);
+                a.style.opacity = opacityRatio;
+                
+                const glowSize = 5 + (intensity * 70);
+                const heartBright = 1.0 + (intensity * 4);
+                a.style.filter = `drop-shadow(0 0 ${glowSize}px red) brightness(${heartBright})`;
+                a.style.pointerEvents = opacityRatio > 0.1 ? 'auto' : 'none';
+            } else {
+                a.style.opacity = "0";
+                a.style.filter = 'none';
+                a.style.pointerEvents = 'none';
+            }
+        });
+        requestAnimationFrame(update);
+    }
+
+    function spawnAnomaly() {
+        if (!active) return;
+        const a = document.createElement('div');
+        a.className = 'anomaly';
+        a.style.left = (Math.random() * 85 + 5) + "%";
+        a.style.top = (Math.random() * 85 + 5) + "%";
+        a.onmousedown = () => { 
+            if (parseFloat(a.style.opacity) > 0.2) {
+                playHauntedPiano();
+                a.remove(); 
+                calculateDread(); 
+            }
+        };
+        document.body.appendChild(a);
+        calculateDread();
+    }
+
+    function calculateDread() {
+        const count = document.querySelectorAll('.anomaly').length;
+        dread = Math.min(100, count * 2); 
+        document.getElementById('manifest-val').innerHTML = Math.floor(dread);
+        if (dread >= 100) triggerEnd();
+    }
+
+    function triggerEnd() {
+        active = false;
+        document.body.classList.remove('ingame');
+        clearInterval(timerInterval);
+        const jumpScreen = document.getElementById('jumpscare');
+        jumpScreen.classList.add('locked');
+        setTimeout(() => { 
+            jumpScreen.classList.remove('locked');
+            document.getElementById('restart-hint').style.opacity = "0.6";
+        }, 2000);
+        document.getElementById('survival-display').innerText = `POSSESSED - YOU SURVIVED FOR ${document.getElementById('timer-val').innerText}`;
+        jumpScreen.style.display = 'flex';
+        document.getElementById('crosshair-container').style.display = 'none';
+        const g = audioCtx.createGain(); g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(1.5, audioCtx.currentTime);
+        for(let i=0; i<30; i++){
+            const o = audioCtx.createOscillator(); o.type = 'sawtooth';
+            o.frequency.value = 40 + Math.random() * 600;
+            o.connect(g); o.start(); o.stop(audioCtx.currentTime + 2);
+        }
+    }
+
+    function startGame() {
+        active = true; startTime = Date.now();
+        document.body.classList.add('ingame');
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('crosshair-container').style.display = 'block';
+        document.getElementById('lantern-overlay').style.display = 'block';
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        timerInterval = setInterval(() => {
+            const diff = Date.now() - startTime;
+            const m = Math.floor(diff / 60000), s = Math.floor((diff % 60000) / 1000), ms = Math.floor((diff % 1000) / 10);
+            document.getElementById('timer-val').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+        }, 50);
+        update();
+        playHeartbeat();
+        playCroak();
+        (function loop() { 
+            if(active) { 
+                spawnAnomaly(); 
+                const elapsedSec = (Date.now() - startTime) / 1000;
+                const timeAccelerator = 1 + (elapsedSec / 18); 
+                const delay = Math.max(180, 1300 / timeAccelerator);
+                setTimeout(loop, delay); 
+            } 
+        })();
+    }
+    init();
+</script>
+</body>
+</html>
