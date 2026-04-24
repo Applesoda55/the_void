@@ -250,6 +250,11 @@ function setupOrientationListener() {
             gain.gain.setValueAtTime(0.5 + (intensity * 2.0), now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(now); osc.stop(now + 0.2);
+
+            if (navigator.vibrate) {
+                // We use a timeout to match the audio offset perfectly
+                setTimeout(() => navigator.vibrate(12), offset * 1000);
+            }
         };
         beat(0); beat(0.12);
         setTimeout(playHeartbeat, bpmDelay);
@@ -290,8 +295,13 @@ function setupOrientationListener() {
             const rect = a.getBoundingClientRect();
             const dist = Math.hypot(lanternX - (rect.left + 70), lanternY - (rect.top + 70));
             if (dist < visionRadius) {
-                if(isMobile && dist < visionRadius * 0.3) { playHauntedPiano(); a.remove(); calculateDread(); }
-                a.style.opacity = 1 - (dist / visionRadius);
+                if(isMobile && dist < visionRadius * 0.3) { 
+                    playHauntedPiano(); 
+                    if (navigator.vibrate) navigator.vibrate(30); // Makes the phone jolt when you find a heart
+                        a.remove(); 
+                        calculateDread(); 
+                    }
+                    a.style.opacity = 1 - (dist / visionRadius);
                 a.style.filter = `drop-shadow(0 0 ${5 + (dread/100 * 70)}px red) brightness(${1.0 + (dread/100 * 4)})`;
                 a.style.pointerEvents = 'auto';
             } else { a.style.opacity = "0"; a.style.pointerEvents = 'none'; }
