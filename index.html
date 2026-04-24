@@ -39,18 +39,27 @@
         /* Mobile UI Scaling Adjustments */
         @media (max-width: 768px) {
             #crosshair-ring {
-                width: 80px; height: 80px;
-                margin-left: -40px; margin-top: -40px;
-                border-width: 3px;
+                width: 130px; /* Increased from 80px */
+                height: 130px; /* Increased from 80px */
+                margin-left: -60px; 
+                margin-top: -60px;
+                border-width: 5px; /* Thicker ring for visibility */
             }
             #central-stats {
-                width: 300px; margin-left: -150px;
-                background: rgba(0, 0, 0, 0.4);
-                border-radius: 10px;
-                padding: 10px;
+                width: 350px; /* Wider container for larger text */
+                margin-left: -175px;
+                background: rgba(0, 0, 0, 0.5); /* Slightly darker for readability */
+                border-radius: 15px;
+                padding: 15px;
+                margin-top: 40px; /* More spacing from the ring */
             }
-            #timer-val { font-size: 8vw; }
-            #dread-label { font-size: 4vw; }
+            #timer-val { 
+                font-size: 12vw; /* Increased from 8vw */
+            }
+            #dread-label { 
+                font-size: 6vw; /* Increased from 4vw */
+                letter-spacing: 2px;
+            }
         }
 
         #loading-container {
