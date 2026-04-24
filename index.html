@@ -169,8 +169,8 @@
 
     function setupOrientationListener() {
         window.addEventListener('deviceorientation', (e) => {
-            let normX = (e.gamma + 25) / 50;
-            let normY = (e.beta - 20) / 40; // Increased vertical sensitivity
+            let normX = (e.gamma + 25) / 30;
+            let normY = (e.beta - 20) / 20; // Increased vertical sensitivity
             targetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
             targetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
         });
