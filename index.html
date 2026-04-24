@@ -40,38 +40,47 @@
         /* Mobile UI Scaling Adjustments */
         @media screen and (max-width: 900px) { 
             #crosshair-ring {
-                /* Using vmin ensures it's a percentage of the screen's smallest side */
-                width: 30vmin !important; 
-                height: 30vmin !important;
-                /* Centers it based on the new size */
-                margin-left: -15vmin !important;
-                margin-top: -15vmin !important;
-                border: 10px solid rgba(255, 0, 0, 0.8) !important;
+                /* 20% of the smallest screen dimension ensures it never feels too big or small */
+                width: 20vmin !important; 
+                height: 20vmin !important;
+                /* Keeps it perfectly centered under the touch point */
+                margin-left: -10vmin !important; 
+                margin-top: -10vmin !important;
+                border: 1.5vmin solid rgba(255, 0, 0, 0.6) !important;
                 display: block !important;
             }
         
             #central-stats {
-                width: 90vw !important; 
-                margin-left: -45vw !important; 
-                margin-top: 15vh !important; 
-                background: rgba(0, 0, 0, 0.8) !important;
-                padding: 20px !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
+                /* Takes up 85% of the screen width regardless of device */
+                width: 85vw !important; 
+                margin-left: -42.5vw !important; 
+                margin-top: 8vh !important; /* Moves UI down 8% from the top */
+                background: rgba(0, 0, 0, 0.7) !important;
+                padding: 2vh !important;
+                border-radius: 2vmin;
             }
         
             #timer-val { 
-                font-size: 15vh !important; /* Scaled to 15% of screen height */
+                /* Scaled based on height so it doesn't overlap the ring */
+                font-size: 8vh !important; 
                 line-height: 1 !important;
+                display: block;
             }
         
             #central-stats div {
-                font-size: 5vh !important; /* This scales the "DREAD" text */
+                /* "DREAD" text becomes 3% of screen height */
+                font-size: 3vh !important; 
+                margin-top: 1vh;
             }
         
             #manifest-val {
-                font-size: 6vh !important;
+                font-size: 3vh !important;
+            }
+        
+            /* Scale the hearts to be roughly 12% of the screen width */
+            .anomaly {
+                width: 12vw !important;
+                height: 12vw !important;
             }
         }
 
