@@ -112,8 +112,8 @@
 
     <div id="start-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <h1 id="loc-title" style="color:#800; letter-spacing:15px; font-size:3em; text-align:center; text-transform: uppercase;">MANIFESTING</h1>
-        <p style="color: #400; letter-spacing: 5px; font-weight: bold; margin-top: 20px; font-size: clamp(1rem, 3vw, 1.2rem);">FIND THE HEARTS TO SURVIVE</p>
-        <p style="color: #400; letter-spacing: 3px; font-weight: bold; margin-top: 20px; font-size: clamp(1rem, 2vw, 1.0rem);">(Headphones are highly recommended)</p>
+        <p style="color: #700; letter-spacing: 5px; font-weight: bold; margin-top: 20px; font-size: clamp(1.1rem, 4vw, 1.2rem);">FIND THE HEARTS TO SURVIVE</p>
+        <p style="color: #700; letter-spacing: 3px; font-weight: bold; margin-top: 20px; font-size: clamp(1.1rem, 4vw, 1.2rem);">(Headphones are highly recommended)</p>
         <div id="loading-container">
             <div id="loading-bar"></div>
         </div>
@@ -173,13 +173,13 @@ function setupOrientationListener() {
         // X-AXIS (Left/Right)
         // Gamma 0 is usually phone held vertical. 
         // We use a small range (20) to make it very sensitive.
-        let normX = (e.gamma + 10) / 30; 
+        let normX = (e.gamma + 15) / 30; 
 
         // Y-AXIS (Up/Down)
         // If the view is "awkward," it's usually because 'beta' is off.
         // A54 natural tilt is usually around 45-60 degrees.
         // We subtract 45 so that holding it naturally = 0 (the top of the screen).
-        let normY = (e.beta - 45) / 20; 
+        let normY = (e.beta - 55) / 25; 
 
         targetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
         targetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
