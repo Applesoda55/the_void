@@ -1,22 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Posessed</title>
+    <title>THE_VOID_V64_POOL</title>
     <style>
         body { 
             background: #000; color: #600; font-family: 'Georgia', serif; 
             margin: 0; overflow: hidden; height: 100vh; touch-action: none;
             user-select: none; -webkit-user-select: none;
         }
-        
-        #game-viewport {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            transform-origin: top left;
-            /* This ensures smooth scaling on mobile GPUs */
-            will-change: transform; 
-        }
+
         body.ingame { cursor: none !important; }
 
         #lantern-overlay {
@@ -45,14 +37,21 @@
         #dread-label { font-size: 1.5vw; opacity: 0.8; text-transform: uppercase; }
 
         /* Mobile UI Scaling Adjustments */
-        @media screen and (max-width: 900px) {
-            #game-viewport {
-                /* This scales the ENTIRE game up by 25% on mobile */
-                /* It keeps every heart, phantom, and text perfectly in place */
-                transform: scale(1.25); 
-                width: 80vw;  /* Adjust width to prevent clipping when scaled */
-                height: 80vh; 
+        @media (max-width: 768px) {
+            #crosshair-ring {
+                width: 80px; height: 80px;
+                margin-left: -40px; margin-top: -40px;
+                border-width: 3px;
             }
+            #central-stats {
+                width: 300px; margin-left: -150px;
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 10px;
+                padding: 10px;
+            }
+            #timer-val { font-size: 8vw; }
+            #dread-label { font-size: 4vw; }
+        }
 
         #loading-container {
             width: 300px; height: 2px; background: #200;
@@ -109,7 +108,7 @@
     </style>
 </head>
 <body>
-<div id="game-viewport">
+
     <div id="start-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <h1 id="loc-title" style="color:#800; letter-spacing:15px; font-size:3em; text-align:center; text-transform: uppercase;">MANIFESTING</h1>
         <p style="color: #400; letter-spacing: 5px; font-weight: bold; margin-top: 20px; font-size: clamp(1rem, 3vw, 1.2rem);">FIND THE HEARTS TO SURVIVE</p>
@@ -139,7 +138,6 @@
 
     <div id="phantom"></div>
     <div id="lantern-overlay"></div>
-    </div>
 
 <script>
     let dread = 0, active = false, startTime, audioCtx, timerInterval;
