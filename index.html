@@ -39,31 +39,27 @@
         /* Mobile UI Scaling Adjustments */
         @media (max-width: 768px) {
             #crosshair-ring {
-                width: 130px; /* Increased from 80px */
-                height: 130px; /* Increased from 80px */
-                margin-left: -60px; 
-                margin-top: -60px;
-                border-width: 5px; /* Thicker ring for visibility */
+                width: 140px !important;  /* Large enough to see around your thumb */
+                height: 140px !important;
+                margin-left: -70px;      /* Half of width to keep it centered */
+                margin-top: -70px;       /* Half of height to keep it centered */
+                border: 8px solid rgba(255, 0, 0, 0.6);
             }
+        
             #central-stats {
-                width: 350px; /* Wider container for larger text */
-                margin-left: -175px;
-                background: rgba(0, 0, 0, 0.5); /* Slightly darker for readability */
-                border-radius: 15px;
+                width: 80vw; 
+                margin-left: -40vw; 
+                margin-top: 60px; 
+                background: rgba(0, 0, 0, 0.6);
                 padding: 15px;
-                margin-top: 40px; /* More spacing from the ring */
             }
+        
             #timer-val { 
-                font-size: 25vw; /* Increased from 8vw */
+                font-size: 18vw; /* Massive survival timer */
             }
-            #dread-label { 
-                font-size: 15vw; /* Increased from 4vw */
-                letter-spacing: 2px;
-            }
-            #crosshair-ring{
-            width: 50px; height: 50px;
-            border: 6px solid rgba(255, 0, 0, 0.5);
-            border-radius: 50%; margin-left: -25px; margin-top: -25px;
+        
+            #manifest-val {
+                font-size: 10vw;
             }
         }
 
