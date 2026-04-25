@@ -54,11 +54,10 @@
             z-index: 200; cursor: pointer; opacity: 0; -webkit-user-drag: none; will-change: opacity, filter;
         }
 
-        /* CHANGED: From #phantom to .phantom class for multi-spawning */
         .phantom {
-            position: fixed; width: 50vh; height: 50vh; pointer-events: none; z-index: 150; opacity: 0;
+            position: fixed; width: 55vh; height: 55vh; pointer-events: none; z-index: 150; opacity: 0;
             background-size: cover; background-position: center; will-change: transform, opacity, filter;
-            transition: opacity 0.2s ease-in;
+            transition: opacity 0.4s ease-out, transform 1.2s linear;
         }
 
         #jumpscare {
@@ -66,8 +65,6 @@
             background: #000; display: none; z-index: 9999;
             flex-direction: column; justify-content: center; align-items: center;
         }
-
-        #jumpscare.locked { pointer-events: none; }
 
         #scare-img { 
             width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; z-index: 9998; 
@@ -77,9 +74,9 @@
         #final-stats { position: relative; z-index: 10000; color: #fff; text-align: center; background: rgba(0,0,0,0.85); padding: 50px; border: 2px solid red; }
 
         @keyframes glitch {
-            0% { transform: translate(0,0); filter: invert(0); }
-            25% { transform: translate(-10px, 5px); filter: invert(0.1); }
-            75% { transform: translate(10px, -5px); }
+            0% { transform: translate(0,0); }
+            25% { transform: translate(-5px, 3px); }
+            75% { transform: translate(5px, -3px); }
             100% { transform: translate(0,0); }
         }
     </style>
@@ -88,8 +85,6 @@
 
     <div id="start-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <h1 id="loc-title" style="color:#800; letter-spacing:15px; font-size:3em; text-align:center; text-transform: uppercase;">MANIFESTING</h1>
-        <p style="color: #700; letter-spacing: 5px; font-weight: bold; margin-top: 20px; font-size: clamp(1.1rem, 4vw, 1.2rem);">FIND THE HEARTS TO SURVIVE</p>
-        <p style="color: #700; letter-spacing: 3px; font-weight: bold; margin-top: 20px; font-size: clamp(1.1rem, 4vw, 1.2rem);">(Headphones are highly recommended)</p>
         <div id="loading-container">
             <div id="loading-bar"></div>
         </div>
@@ -126,6 +121,17 @@
     const finalJumpscarePool = ["https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80","https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRS1UOOXuEvUpaLbFrVIVVqw2ZYoXPncJQY1w&s"];
 
     const preloadedLow = [], preloadedMid = [], preloadedHigh = [], preloadedFinal = [];
+    
+    // NEW: Image Cycling Decks to prevent duplication
+    let decks = { low: [], mid: [], high: [] };
+
+    function getNextFromDeck(type) {
+        if (decks[type].length === 0) {
+            let source = type === 'low' ? preloadedLow : (type === 'mid' ? preloadedMid : preloadedHigh);
+            decks[type] = [...source].sort(() => Math.random() - 0.5);
+        }
+        return decks[type].pop();
+    }
 
     window.addEventListener('dragstart', e => e.preventDefault());
 
@@ -228,35 +234,49 @@
         document.getElementById('crosshair-container').style.transform = `translate3d(${lanternX}px, ${lanternY}px, 0)`;
         document.getElementById('lantern-overlay').style.background = `radial-gradient(circle ${visionRadius}px at ${lanternX}px ${lanternY}px, transparent 0%, rgba(5,0,0,0.99) 70%, rgba(0,0,0,1) 98%)`;
         
-        // --- NEW MULTI-PHANTOM PROPORTIONAL LOGIC ---
-        let manifestChance = 0.005 + (Math.pow(dread/100, 3) * 0.15);
-        if (Math.random() < manifestChance) {
+        // --- REFINED PROPORTIONAL PHANTOM LOGIC ---
+        let maxPhantoms = dread > 80 ? 3 : (dread > 50 ? 2 : 1);
+        let currentPhantoms = document.querySelectorAll('.phantom').length;
+        
+        let manifestChance = 0.004 + (Math.pow(dread/100, 2) * 0.08);
+
+        if (currentPhantoms < maxPhantoms && Math.random() < manifestChance) {
             const p = document.createElement('div');
             p.className = 'phantom';
             document.body.appendChild(p);
 
-            let pool = dread < 35 ? preloadedLow : (dread < 70 ? preloadedMid : preloadedHigh);
-            if (pool.length > 0) {
-                p.style.left = (Math.random() * 80 + 10) + "%"; 
-                p.style.top = (Math.random() * 80 + 10) + "%";
-                p.style.backgroundImage = `url(${pool[Math.floor(Math.random() * pool.length)].src})`;
+            let poolType = dread < 35 ? 'low' : (dread < 70 ? 'mid' : 'high');
+            let img = getNextFromDeck(poolType);
+            
+            if (img) {
+                let startX = (Math.random() * 70 + 15);
+                let startY = (Math.random() * 70 + 15);
+                p.style.left = startX + "%"; 
+                p.style.top = startY + "%";
+                p.style.backgroundImage = `url(${img.src})`;
                 
                 let clarity = dread / 100;
                 let blurVal = Math.max(0, 15 - (clarity * 15));
-                let brightness = 0.3 + (clarity * 1.5);
+                let brightness = 0.4 + (clarity * 1.2);
                 
-                // ADDED: Proportional tilt, mirroring, and scaling
                 let mirror = Math.random() < 0.5 ? -1 : 1;
-                let tilt = (Math.random() * 30 - 15) * (1 + clarity); 
-                p.style.filter = `blur(${blurVal}px) grayscale(1) brightness(${brightness}) contrast(2)`;
-                p.style.transform = `translate(-50%, -50%) scaleX(${mirror}) scale(${0.8 + (clarity * 0.5)}) rotate(${tilt}deg)`;
+                let tilt = (Math.random() * 40 - 20);
+                
+                p.style.filter = `blur(${blurVal}px) grayscale(1) brightness(${brightness}) contrast(1.5)`;
+                p.style.transform = `translate(-50%, -50%) scaleX(${mirror}) scale(${0.8 + (clarity * 0.4)}) rotate(${tilt}deg)`;
 
-                requestAnimationFrame(() => { p.style.opacity = 0.2 + (clarity * 0.8); });
+                // ANIMATION: Drift movement
+                requestAnimationFrame(() => {
+                    p.style.opacity = 0.3 + (clarity * 0.7);
+                    let moveX = (Math.random() - 0.5) * 15;
+                    let moveY = (Math.random() - 0.5) * 15;
+                    p.style.transform += ` translate(${moveX}vw, ${moveY}vh)`;
+                });
 
-                let duration = Math.max(300, 1500 - (dread * 12));
+                let duration = Math.max(500, 1800 - (dread * 10));
                 setTimeout(() => {
                     p.style.opacity = "0";
-                    setTimeout(() => p.remove(), 200);
+                    setTimeout(() => p.remove(), 400);
                 }, duration);
             }
         }
@@ -300,9 +320,8 @@
         active = false; clearInterval(timerInterval);
         const jumpScreen = document.getElementById('jumpscare');
         if (preloadedFinal.length > 0) document.getElementById('scare-img').src = preloadedFinal[Math.floor(Math.random() * preloadedFinal.length)].src;
-        jumpScreen.classList.add('locked');
-        setTimeout(() => { jumpScreen.classList.remove('locked'); document.getElementById('restart-hint').style.opacity = "0.6"; }, 2000);
-        document.getElementById('survival-display').innerText = `POSSESSED - YOU SURVIVED FOR ${document.getElementById('timer-val').innerText}`;
+        setTimeout(() => { document.getElementById('restart-hint').style.opacity = "0.6"; }, 2000);
+        document.getElementById('survival-display').innerText = `POSSESSED - TIME: ${document.getElementById('timer-val').innerText}`;
         jumpScreen.style.display = 'flex';
         document.getElementById('crosshair-container').style.display = 'none';
         const g = audioCtx.createGain(); g.connect(audioCtx.destination); g.gain.setValueAtTime(1.5, audioCtx.currentTime);
@@ -326,8 +345,6 @@
             document.getElementById('timer-val').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
         }, 50);
         update(); playHeartbeat(); playCroak();
-        
-        // CHANGED: Heart spawn rate now scales with Dread
         (function loop() { if(active) { spawnAnomaly(); let nextSpawn = Math.max(300, 2000 - (dread * 17)); setTimeout(loop, nextSpawn); } })();
     }
     init();
