@@ -143,6 +143,7 @@
 <script>
     let dread = 0, active = false, startTime, audioCtx, timerInterval;
     let targetX = innerWidth/2, targetY = innerHeight/2, lanternX = targetX, lanternY = targetY;
+    let baseGamma = 0, baseBeta = 0; 
     let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     const lowDreadPool = ["https://images.squarespace-cdn.com/content/v1/56c13cc00442627a08632989/1476665191145-11N2DEU750O6CETLU434/IMG_4344.PNG?format=500w", "https://i.pinimg.com/736x/6d/68/cf/6d68cfe3b7984ff61a2ee0d161d78f3c.jpg", "https://i.etsystatic.com/20862972/r/il/fbde38/2054290919/il_794xN.2054290919_jygx.jpg", "https://preview.redd.it/can-we-ever-get-as-creepy-as-vintage-halloween-v0-2yor4mvjjpj71.jpg?width=640&crop=smart&auto=webp&s=03623ea881b168d114390f6803d57e6deb85a823", "https://hips.hearstapps.com/hmg-prod/images/ten-year-old-girl-stands-in-the-corner-of-her-home-with-her-news-photo-1600784321.jpg?crop=1.00xw:0.774xh;0,0.0843xh", "https://media.newyorker.com/photos/5bd78600daf42d0501bd51e6/master/pass/Treisman-Scary-Stories.jpg"];
@@ -159,32 +160,39 @@
             try {
                 const response = await DeviceOrientationEvent.requestPermission();
                 if (response === 'granted') {
+                    // NEW: Snapshot current orientation to set the "center"
+                    window.addEventListener('deviceorientation', (e) => {
+                        baseGamma = e.gamma || 0;
+                        baseBeta = e.beta || 0;
+                    }, { once: true });
                     setupOrientationListener();
                 }
             } catch (e) { console.error(e); }
         } else if (isMobile) {
+            // NEW: Snapshot current orientation for Android/A54
+            window.addEventListener('deviceorientation', (e) => {
+                baseGamma = e.gamma || 0;
+                baseBeta = e.beta || 0;
+            }, { once: true });
             setupOrientationListener();
         }
         startGame();
     }
 
-function setupOrientationListener() {
-    window.addEventListener('deviceorientation', (e) => {
-        // X-AXIS (Left/Right)
-        // Gamma 0 is usually phone held vertical. 
-        // We use a small range (20) to make it very sensitive.
-        let normX = (e.gamma + 10) / 30; 
-
-        // Y-AXIS (Up/Down)
-        // If the view is "awkward," it's usually because 'beta' is off.
-        // A54 natural tilt is usually around 45-60 degrees.
-        // We subtract 45 so that holding it naturally = 0 (the top of the screen).
-        let normY = (e.beta - 50) / 25; 
-
-        targetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
-        targetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
-    });
-}
+    function setupOrientationListener() {
+        window.addEventListener('deviceorientation', (e) => {
+            // NEW: Subtract base orientation from current orientation
+            let relativeX = (e.gamma || 0) - baseGamma;
+            let relativeY = (e.beta || 0) - baseBeta;
+    
+            // NEW: Normalized movement based on relative change
+            let normX = (relativeX + 15) / 30; 
+            let normY = (relativeY + 15) / 30; 
+    
+            targetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
+            targetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
+        });
+    }
 
     async function init() {
         try {
