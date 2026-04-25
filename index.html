@@ -144,7 +144,7 @@
         let dread = 0, active = false, startTime, audioCtx, timerInterval;
         let targetX = innerWidth/2, targetY = innerHeight/2, lanternX = targetX, lanternY = targetY;
         // Added baseline and smoothing variables
-        let baseGamma = 0, baseBeta = 0; 
+        let lastGamma = null, lastBeta = null;
         let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
         const lowDreadPool = ["https://images.squarespace-cdn.com/content/v1/56c13cc00442627a08632989/1476665191145-11N2DEU750O6CETLU434/IMG_4344.PNG?format=500w", "https://i.pinimg.com/736x/6d/68/cf/6d68cfe3b7984ff61a2ee0d161d78f3c.jpg", "https://i.etsystatic.com/20862972/r/il/fbde38/2054290919/il_794xN.2054290919_jygx.jpg", "https://preview.redd.it/can-we-ever-get-as-creepy-as-vintage-halloween-v0-2yor4mvjjpj71.jpg?width=640&crop=smart&auto=webp&s=03623ea881b168d114390f6803d57e6deb85a823", "https://hips.hearstapps.com/hmg-prod/images/ten-year-old-girl-stands-in-the-corner-of-her-home-with-her-news-photo-1600784321.jpg?crop=1.00xw:0.774xh;0,0.0843xh", "https://media.newyorker.com/photos/5bd78600daf42d0501bd51e6/master/pass/Treisman-Scary-Stories.jpg"];
@@ -157,50 +157,45 @@
         window.addEventListener('dragstart', e => e.preventDefault());
     
         async function handleStart() {
-            if (isMobile && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                try {
-                    const response = await DeviceOrientationEvent.requestPermission();
-                    if (response === 'granted') {
-                        // Capture snapshot of baseline orientation
-                        window.addEventListener('deviceorientation', (e) => {
-                            baseGamma = e.gamma || 0;
-                            baseBeta = e.beta || 0;
-                        }, { once: true });
+                    if (isMobile && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        try {
+                            const response = await DeviceOrientationEvent.requestPermission();
+                            if (response === 'granted') setupOrientationListener();
+                        } catch (e) { console.error(e); }
+                    } else if (isMobile) {
                         setupOrientationListener();
                     }
-                } catch (e) { console.error(e); }
-            } else if (isMobile) {
-                // Snapshot baseline for Android
-                window.addEventListener('deviceorientation', (e) => {
-                    baseGamma = e.gamma || 0;
-                    baseBeta = e.beta || 0;
-                }, { once: true });
-                setupOrientationListener();
-            }
-            startGame();
-        }
+                    startGame();
+                }
     
         function setupOrientationListener() {
             window.addEventListener('deviceorientation', (e) => {
-                // 1. Raw relative movement from baseline
-                let relX = (e.gamma || 0) - baseGamma;
-                let relY = (e.beta || 0) - baseBeta;
-    
-                // 2. HARD CLAMP: prevents spazzing by limiting tilt range
-                relX = Math.max(-15, Math.min(15, relX));
-                relY = Math.max(-15, Math.min(15, relY));
-    
-                // 3. Normalize into 0-1 range based on clamped values
-                let normX = (relX + 15) / 30; 
-                let normY = (relY + 15) / 30; 
-    
-                let newTargetX = normX * window.innerWidth;
-                let newTargetY = normY * window.innerHeight;
-    
-                // 4. MOUSE SMOOTHING: Interpolation (85% old, 15% new)
-                targetX = (targetX * 0.85) + (newTargetX * 0.15);
-                targetY = (targetY * 0.85) + (newTargetY * 0.15);
-            });
+                // If this is the first frame, just capture and return
+                if (lastGamma === null || lastBeta === null) {
+                    lastGamma = e.gamma;
+                    lastBeta = e.beta;
+                    return;
+                }
+
+                // 1. CALCULATE DELTA (The change since the last frame)
+                let deltaX = e.gamma - lastGamma;
+                let deltaY = e.beta - lastBeta;
+
+                // 2. THE SNAP FIX: Ignore jumps larger than 20 degrees 
+                // This stops the teleportation when the sensor "flips"
+                if (Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) {
+                    // Sensitivity Multiplier (adjust 15 to make it faster/slower)
+                    targetX += deltaX * 15;
+                    targetY += deltaY * 15;
+                }
+
+                // 3. HARD SCREEN BOUNDARIES: Keep the flashlight on screen
+                targetX = Math.max(0, Math.min(window.innerWidth, targetX));
+                targetY = Math.max(0, Math.min(window.innerHeight, targetY));
+
+                lastGamma = e.gamma;
+                lastBeta = e.beta;
+            }, true);
         }
     
         async function init() {
