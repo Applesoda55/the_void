@@ -37,50 +37,26 @@
         #timer-val { font-size: 4.5vw; letter-spacing: 2px; }
         #dread-label { font-size: 3vw; opacity: 0.8; text-transform: uppercase; }
 
-        /* Mobile UI Scaling Adjustments */
         @media (max-width: 768px) {
-            #crosshair-ring {
-                width: 80px; height: 80px;
-                margin-left: -40px; margin-top: -40px;
-                border-width: 3px;
-            }
-            #central-stats {
-                width: 300px; margin-left: -150px;
-                background: rgba(0, 0, 0, 0.4);
-                border-radius: 10px;
-                padding: 10px;
-            }
+            #crosshair-ring { width: 60px; height: 60px; margin-left: -30px; margin-top: -30px; border-width: 4px; }
+            #central-stats { width: 300px; margin-left: -150px; background: rgba(0, 0, 0, 0.4); border-radius: 10px; padding: 10px; }
             #timer-val { font-size: 8vw; }
             #dread-label { font-size: 4vw; }
         }
 
-        #loading-container {
-            width: 300px; height: 2px; background: #200;
-            margin-top: 30px; position: relative; overflow: hidden;
-        }
-        #loading-bar {
-            width: 0%; height: 100%; background: #800;
-            transition: width 0.2s ease-out; box-shadow: 0 0 10px red;
-        }
+        #loading-container { width: 300px; height: 2px; background: #200; margin-top: 30px; position: relative; overflow: hidden; }
+        #loading-bar { width: 0%; height: 100%; background: #800; transition: width 0.2s ease-out; box-shadow: 0 0 10px red; }
 
         .anomaly {
             position: absolute; width: 140px; height: 140px;
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="red"><path d="M50 95c-2-10-5-20-10-30-5-10-15-15-20-25s0-20 10-25 15 5 15 15l5 25 5-35c2-15 15-20 20-10s0 20-10 30l-15 40z" opacity="0.8"/></svg>');
             background-size: contain; background-repeat: no-repeat;
-            z-index: 200; cursor: pointer; 
-            opacity: 0; 
-            -webkit-user-drag: none;
-            will-change: opacity, filter;
+            z-index: 200; cursor: pointer; opacity: 0; -webkit-user-drag: none; will-change: opacity, filter;
         }
 
         #phantom {
-            position: fixed;
-            width: 50vh; height: 50vh;
-            pointer-events: none; 
-            z-index: 150; 
-            opacity: 0;
-            background-size: cover; background-position: center;
-            will-change: transform, opacity, filter, left, top;
+            position: fixed; width: 50vh; height: 50vh; pointer-events: none; z-index: 150; opacity: 0;
+            background-size: cover; background-position: center; will-change: transform, opacity, filter;
         }
 
         #jumpscare {
@@ -89,20 +65,16 @@
             flex-direction: column; justify-content: center; align-items: center;
         }
 
-        #jumpscare.locked { pointer-events: none; }
-
         #scare-img { 
-            width: 100%; height: 100%; object-fit: cover; 
-            position: absolute; top:0; left:0; z-index: 9998; 
-            filter: grayscale(1) contrast(5) brightness(0.8); 
-            animation: glitch 0.05s infinite; 
+            width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; z-index: 9998; 
+            filter: grayscale(1) contrast(5) brightness(0.8); animation: glitch 0.05s infinite; 
         }
 
         #final-stats { position: relative; z-index: 10000; color: #fff; text-align: center; background: rgba(0,0,0,0.85); padding: 50px; border: 2px solid red; }
 
         @keyframes glitch {
-            0% { transform: translate(0,0); filter: invert(0); }
-            25% { transform: translate(-10px, 5px); filter: invert(0.1); }
+            0% { transform: translate(0,0); }
+            25% { transform: translate(-10px, 5px); }
             75% { transform: translate(10px, -5px); }
             100% { transform: translate(0,0); }
         }
@@ -112,12 +84,11 @@
 
     <div id="start-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <h1 id="loc-title" style="color:#800; letter-spacing:15px; font-size:3em; text-align:center; text-transform: uppercase;">MANIFESTING</h1>
-        <p style="color: #700; letter-spacing: 5px; font-weight: bold; margin-top: 20px; font-size: clamp(1.1rem, 4vw, 1.2rem);">FIND THE HEARTS TO SURVIVE</p>
-        <p style="color: #700; letter-spacing: 3px; font-weight: bold; margin-top: 20px; font-size: clamp(1.1rem, 4vw, 1.2rem);">(Headphones are highly recommended)</p>
+        <p style="color: #700; letter-spacing: 5px; font-weight: bold; margin-top: 20px;">HOLD POSITION TO CALIBRATE</p>
         <div id="loading-container">
             <div id="loading-bar"></div>
         </div>
-        <button id="start-btn" onclick="handleStart()" style="display:none; margin-top:40px; background:none; border:1px solid #600; color:#b00; padding:20px 50px; cursor:pointer; font-family:serif; letter-spacing:10px; font-weight:bold; text-transform: uppercase;">BEGIN PURGE</button>
+        <button id="start-btn" onclick="handleStart()" style="display:none; margin-top:40px; background:none; border:1px solid #600; color:#b00; padding:20px 50px; cursor:pointer; font-family:serif; letter-spacing:10px; font-weight:bold;">BEGIN PURGE</button>
     </div>
 
     <div id="jumpscare" onclick="location.reload()">
@@ -145,10 +116,16 @@
     let targetX = innerWidth/2, targetY = innerHeight/2, lanternX = targetX, lanternY = targetY;
     let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+    // SMOOTHING & CONTINUOUS CALIBRATION VARS
+    let lerpFactor = 0.12; 
+    let driftFactor = 0.012; // Speed of auto-calibration throughout play
+    let rawBeta = 0, rawGamma = 0;
+    let anchorBeta = null, anchorGamma = null;
+
     const lowDreadPool = ["https://images.squarespace-cdn.com/content/v1/56c13cc00442627a08632989/1476665191145-11N2DEU750O6CETLU434/IMG_4344.PNG?format=500w", "https://i.pinimg.com/736x/6d/68/cf/6d68cfe3b7984ff61a2ee0d161d78f3c.jpg", "https://i.etsystatic.com/20862972/r/il/fbde38/2054290919/il_794xN.2054290919_jygx.jpg", "https://preview.redd.it/can-we-ever-get-as-creepy-as-vintage-halloween-v0-2yor4mvjjpj71.jpg?width=640&crop=smart&auto=webp&s=03623ea881b168d114390f6803d57e6deb85a823", "https://hips.hearstapps.com/hmg-prod/images/ten-year-old-girl-stands-in-the-corner-of-her-home-with-her-news-photo-1600784321.jpg?crop=1.00xw:0.774xh;0,0.0843xh", "https://media.newyorker.com/photos/5bd78600daf42d0501bd51e6/master/pass/Treisman-Scary-Stories.jpg"];
-    const midDreadPool = ["https://i.ebayimg.com/images/g/FVsAAOSwCvRi8VPV/s-l400.jpg","data:image/jpeg;base64,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", "https://www.gamespot.com/a/uploads/scale_super/1632/16320660/4050752-ss_8f7f15e075b4843726e2e52e0ca10df3b7022aba.1920x1080.jpg", "https://preview.redd.it/what-analog-horror-series-has-the-creepiest-faces-v0-kvsamnnvfw6e1.jpeg?width=948&format=pjpg&auto=webp&s=526dd21d79a53eb60ce3e1743b5cddd3c099542d", "https://i.pinimg.com/474x/40/87/af/4087af0f0b28c2b64d9456c51aa75c4c.jpg", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmT1Z6mioCEFB5khncln7X9MSaS2fHDhpJGg&s", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYJmwWMu_TkxVX8o3Jz4FRKaRWrNhDFXAkiw&s"];
-    const highDreadPool = ["https://www.thisishorror.co.uk/wp-content/uploads/2012/07/the-exorcist.jpg","data:image/jpeg;base64,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", "https://images.unsplash.com/photo-1614846409012-68045952f40c?auto=format&fit=crop&w=800&q=80", "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80", "https://i.pinimg.com/736x/89/3c/bc/893cbc25aaa02410eb3880fe925af2b0.jpg", "https://i.ytimg.com/vi/eyVtaOPjDQA/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAe9eNIUEFxu3B3pBH6sIa8AZQXZw", "https://media.tenor.com/wRwerbndgV8AAAAM/micheal.gif", "https://i.guim.co.uk/img/static/sys-images/Guardian/Pix/pictures/2014/10/21/1413886720805/Ringu-Ring-sadako-eye-002.jpg?quality=85&auto=format&fit=max&s=d282657c4ae24a5cb6432ab2b1d6d90b"];
-    const finalJumpscarePool = ["https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80","https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRS1UOOXuEvUpaLbFrVIVVqw2ZYoXPncJQY1w&s", "https://i.ytimg.com/vi/eyVtaOPjDQA/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAe9eNIUEFxu3B3pBH6sIa8AZQXZw", "https://camo.githubusercontent.com/fe9a422b01626b8907eb21aeb3999e3cb3c751e0e98e989fdf0c0d982236ec1f/68747470733a2f2f692e7974696d672e636f6d2f76692f524e6f48635745387462512f6d617872657364656661756c742e6a7067", "https://images.steamusercontent.com/ugc/2473124017157979292/511A732EECDFF82FAA2D93503602759169A3D751/?imw=200&imh=200&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true"];
+    const midDreadPool = ["https://i.ebayimg.com/images/g/FVsAAOSwCvRi8VPV/s-l400.jpg", "https://www.gamespot.com/a/uploads/scale_super/1632/16320660/4050752-ss_8f7f15e075b4843726e2e52e0ca10df3b7022aba.1920x1080.jpg", "https://preview.redd.it/what-analog-horror-series-has-the-creepiest-faces-v0-kvsamnnvfw6e1.jpeg?width=948&format=pjpg&auto=webp&s=526dd21d79a53eb60ce3e1743b5cddd3c099542d", "https://i.pinimg.com/474x/40/87/af/4087af0f0b28c2b64d9456c51aa75c4c.jpg"];
+    const highDreadPool = ["https://www.thisishorror.co.uk/wp-content/uploads/2012/07/the-exorcist.jpg", "https://images.unsplash.com/photo-1614846409012-68045952f40c?auto=format&fit=crop&w=800&q=80", "https://i.pinimg.com/736x/89/3c/bc/893cbc25aaa02410eb3880fe925af2b0.jpg"];
+    const finalJumpscarePool = ["https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRS1UOOXuEvUpaLbFrVIVVqw2ZYoXPncJQY1w&s"];
 
     const preloadedLow = [], preloadedMid = [], preloadedHigh = [], preloadedFinal = [];
 
@@ -158,33 +135,38 @@
         if (isMobile && typeof DeviceOrientationEvent.requestPermission === 'function') {
             try {
                 const response = await DeviceOrientationEvent.requestPermission();
-                if (response === 'granted') {
-                    setupOrientationListener();
-                }
+                if (response === 'granted') setupOrientationListener();
             } catch (e) { console.error(e); }
         } else if (isMobile) {
             setupOrientationListener();
         }
+        anchorBeta = rawBeta;
+        anchorGamma = rawGamma;
         startGame();
     }
 
-function setupOrientationListener() {
-    window.addEventListener('deviceorientation', (e) => {
-        // X-AXIS (Left/Right)
-        // Gamma 0 is usually phone held vertical. 
-        // We use a small range (20) to make it very sensitive.
-        let normX = (e.gamma + 10) / 30; 
+    function setupOrientationListener() {
+        window.addEventListener('deviceorientation', (e) => {
+            rawBeta = e.beta;
+            rawGamma = e.gamma;
 
-        // Y-AXIS (Up/Down)
-        // If the view is "awkward," it's usually because 'beta' is off.
-        // A54 natural tilt is usually around 45-60 degrees.
-        // We subtract 45 so that holding it naturally = 0 (the top of the screen).
-        let normY = (e.beta - 50) / 25; 
+            if (anchorBeta !== null && active) {
+                // CONTINUOUS AUTO-CALIBRATION
+                anchorBeta += (rawBeta - anchorBeta) * driftFactor;
+                anchorGamma += (rawGamma - anchorGamma) * driftFactor;
 
-        targetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
-        targetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
-    });
-}
+                let diffX = rawGamma - anchorGamma;
+                let diffY = rawBeta - anchorBeta;
+                let sensitivity = 22; 
+                
+                let normX = 0.5 + (diffX / sensitivity);
+                let normY = 0.5 + (diffY / sensitivity);
+
+                targetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
+                targetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
+            }
+        });
+    }
 
     async function init() {
         try {
@@ -192,9 +174,11 @@ function setupOrientationListener() {
             const data = await res.json();
             document.getElementById('loc-title').innerText = `THE ${data.city.toUpperCase()} POSSESSION`;
         } catch (e) { document.getElementById('loc-title').innerText = "THE VOID POSSESSION"; }
+        
         const allToLoad = [{ urls: lowDreadPool, target: preloadedLow }, { urls: midDreadPool, target: preloadedMid }, { urls: highDreadPool, target: preloadedHigh }, { urls: finalJumpscarePool, target: preloadedFinal }];
         let total = lowDreadPool.length + midDreadPool.length + highDreadPool.length + finalJumpscarePool.length;
         let loadedCount = 0;
+        
         const checkComplete = () => {
             loadedCount++;
             document.getElementById('loading-bar').style.width = (loadedCount / total) * 100 + "%";
@@ -203,6 +187,7 @@ function setupOrientationListener() {
                 document.getElementById('start-btn').style.display = 'block';
             }
         };
+
         allToLoad.forEach(category => {
             category.urls.forEach(url => {
                 const img = new Image(); img.src = url;
@@ -250,11 +235,7 @@ function setupOrientationListener() {
             gain.gain.setValueAtTime(0.5 + (intensity * 2.0), now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(now); osc.stop(now + 0.2);
-
-            if (navigator.vibrate) {
-                // We use a timeout to match the audio offset perfectly
-                setTimeout(() => navigator.vibrate(12), offset * 1000);
-            }
+            if (navigator.vibrate) setTimeout(() => navigator.vibrate(12), offset * 1000);
         };
         beat(0); beat(0.12);
         setTimeout(playHeartbeat, bpmDelay);
@@ -262,8 +243,11 @@ function setupOrientationListener() {
 
     function update() {
         if(!active) return;
-        lanternX += (targetX - lanternX) * 0.35;
-        lanternY += (targetY - lanternY) * 0.35;
+
+        // EXPONENTIAL SMOOTHING (LERP)
+        lanternX += (targetX - lanternX) * lerpFactor;
+        lanternY += (targetY - lanternY) * lerpFactor;
+
         const visionRadius = Math.max(80, 250 - (dread * 1.7));
         document.getElementById('crosshair-container').style.transform = `translate3d(${lanternX}px, ${lanternY}px, 0)`;
         document.getElementById('lantern-overlay').style.background = `radial-gradient(circle ${visionRadius}px at ${lanternX}px ${lanternY}px, transparent 0%, rgba(5,0,0,0.99) 70%, rgba(0,0,0,1) 98%)`;
@@ -280,9 +264,9 @@ function setupOrientationListener() {
             if (pool.length > 0) {
                 p.style.left = (Math.random() * 70 + 15) + "%"; p.style.top = (Math.random() * 70 + 15) + "%";
                 p.style.backgroundImage = `url(${pool[Math.floor(Math.random() * pool.length)].src})`;
-                p.style.transform = `translate(-50%, -50%) scaleX(${Math.random() < 0.5 ? -1 : 1}) rotate(${(Math.random() * 30) - 15}deg)`;
+                p.style.transform = `translate(-50%, -50%) scaleX(${Math.random() < 0.5 ? -1 : 1})`;
                 const rect = p.getBoundingClientRect();
-                const dist = Math.hypot(lanternX - rect.left - rect.width/2, lanternY - rect.top - rect.height/2);
+                const dist = Math.hypot(lanternX - (rect.left + rect.width/2), lanternY - (rect.top + rect.height/2));
                 if (dist < visionRadius + 100) {
                     p.style.filter = `blur(${Math.max(0, 15 - (dread/100 * 15))}px) contrast(3) brightness(${0.2 + (dread/100 * 1.8)}) grayscale(1)`;
                     p.style.opacity = 0.3 + (dread/100 * 0.7);
@@ -295,13 +279,13 @@ function setupOrientationListener() {
             const rect = a.getBoundingClientRect();
             const dist = Math.hypot(lanternX - (rect.left + 70), lanternY - (rect.top + 70));
             if (dist < visionRadius) {
-                if(isMobile && dist < visionRadius * 0.3) { 
+                if(isMobile && dist < 45) {
                     playHauntedPiano(); 
-                    if (navigator.vibrate) navigator.vibrate(30); // Makes the phone jolt when you find a heart
-                        a.remove(); 
-                        calculateDread(); 
-                    }
-                    a.style.opacity = 1 - (dist / visionRadius);
+                    if (navigator.vibrate) navigator.vibrate(30);
+                    a.remove(); 
+                    calculateDread(); 
+                }
+                a.style.opacity = 1 - (dist / visionRadius);
                 a.style.filter = `drop-shadow(0 0 ${5 + (dread/100 * 70)}px red) brightness(${1.0 + (dread/100 * 4)})`;
                 a.style.pointerEvents = 'auto';
             } else { a.style.opacity = "0"; a.style.pointerEvents = 'none'; }
@@ -330,9 +314,8 @@ function setupOrientationListener() {
         active = false; clearInterval(timerInterval);
         const jumpScreen = document.getElementById('jumpscare');
         if (preloadedFinal.length > 0) document.getElementById('scare-img').src = preloadedFinal[Math.floor(Math.random() * preloadedFinal.length)].src;
-        jumpScreen.classList.add('locked');
-        setTimeout(() => { jumpScreen.classList.remove('locked'); document.getElementById('restart-hint').style.opacity = "0.6"; }, 2000);
-        document.getElementById('survival-display').innerText = `POSSESSED - YOU SURVIVED FOR ${document.getElementById('timer-val').innerText}`;
+        setTimeout(() => { document.getElementById('restart-hint').style.opacity = "0.6"; }, 2000);
+        document.getElementById('survival-display').innerText = `POSSESSED - TIME: ${document.getElementById('timer-val').innerText}`;
         jumpScreen.style.display = 'flex';
         document.getElementById('crosshair-container').style.display = 'none';
         const g = audioCtx.createGain(); g.connect(audioCtx.destination); g.gain.setValueAtTime(1.5, audioCtx.currentTime);
