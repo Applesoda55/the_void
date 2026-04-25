@@ -181,16 +181,30 @@
 
     function setupOrientationListener() {
         window.addEventListener('deviceorientation', (e) => {
-            // NEW: Subtract base orientation from current orientation
-            let relativeX = (e.gamma || 0) - baseGamma;
-            let relativeY = (e.beta || 0) - baseBeta;
+            let currentGamma = e.gamma || 0;
+            let currentBeta = e.beta || 0;
     
-            // NEW: Normalized movement based on relative change
-            let normX = (relativeX + 15) / 30; 
-            let normY = (relativeY + 15) / 30; 
+            // 1. GIMBAL LOCK FILTER: Prevents the "spazzing" when lying down
+            if (Math.abs(currentGamma - lastGamma) > 100) currentGamma = lastGamma;
+            if (Math.abs(currentBeta - lastBeta) > 100) currentBeta = lastBeta;
+            
+            lastGamma = currentGamma;
+            lastBeta = currentBeta;
     
-            targetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
-            targetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
+            // 2. RELATIVE CALCULATIONS
+            let relativeX = currentGamma - baseGamma;
+            let relativeY = currentBeta - baseBeta;
+    
+            // 3. NORMALIZED COORDINATES
+            let normX = (relativeX + 20) / 40; 
+            let normY = (relativeY + 20) / 40; 
+    
+            // 4. THE SMOOTHING (Add these lines here)
+            let newTargetX = Math.min(Math.max(normX * window.innerWidth, 0), window.innerWidth);
+            let newTargetY = Math.min(Math.max(normY * window.innerHeight, 0), window.innerHeight);
+    
+            targetX = (targetX * 0.8) + (newTargetX * 0.2);
+            targetY = (targetY * 0.8) + (newTargetY * 0.2);
         });
     }
 
